@@ -17,11 +17,6 @@ export default function CoinAPI() {
   const [comment, setComment] = useState("");
   const [nickName, setNickName] = useState("User");
 
-  useEffect(() => {
-    fetchNews();
-    fetchComments();
-  }, []);
-
   const fetchCoinPrice = async () => {
     try {
       const response = await axios.get(
@@ -31,6 +26,7 @@ export default function CoinAPI() {
         }
       );
       setCoinData(response.data);
+      console.log(response.data);
     } catch (error) {
       console.error("Error fetching coin price", error);
     }
@@ -64,36 +60,57 @@ export default function CoinAPI() {
 
   const fetchNews = async () => {
     try {
-      const response = await axios.get("http://165.229.142.136:8080/coin-news");
+      //확인인
+      const response = await axios.get(
+        "http://165.229.142.136:8080/coin-news",
+        { params: { coin_name: "XRP" } }
+      );
       setNews(response.data);
     } catch (error) {
-      console.error("Error fetching news", error);
+      console.error("Error 뉴스스", error);
     }
   };
 
   const fetchComments = async () => {
     try {
+      //확인인
       const response = await axios.get(
-        "http://165.229.142.136:8080/comment-list"
+        "http://165.229.142.136:8080/comment-list",
+        { params: { coinName } }
       );
       setComments(response.data);
+      console.log("댓글 리스트", response);
     } catch (error) {
       console.error("Error fetching comments", error);
     }
   };
 
   const saveComment = async () => {
+    //확인
     try {
-      const response = await axios.post("http://165.229.142.136:8080/save-comment", {
-        coinName,
-        user_id: "test_user",
-        comment,
-      });
+      const response = await axios.post(
+        "http://165.229.142.136:8080/save-comment",
+        {
+          coinName,
+          user_id: 1,
+          comment,
+        }
+      );
       setComment("");
-      console.log(response);
+      console.log("댓글작성완료", response);
       fetchComments();
     } catch (error) {
       console.error("Error saving comment", error);
+    }
+  };
+  const holdingAsset = async () => {
+    try {
+      const response = await axios.get(
+        "http://165.229.142.136:8080/get-user-cash"
+      );
+      console.log("자산", response.data);
+    } catch (error) {
+      console.log("자산에러", error);
     }
   };
 
@@ -122,7 +139,6 @@ export default function CoinAPI() {
           onChange={(e) => setEndDate(e.target.value)}
         />
         <Button onClick={fetchCoinPrice}>코인 가격 조회</Button>
-        {coinData && <Pre>{JSON.stringify(coinData, null, 2)}</Pre>}
       </Card>
       <Card>
         <Input
@@ -166,6 +182,12 @@ export default function CoinAPI() {
             <b>{c.nickName}</b>: {c.comment} <small>({c.createdAt})</small>
           </CommentItem>
         ))}
+      </Card>
+      <Card>
+        <Button onClick={() => fetchNews()}>코인 뉴스</Button>
+
+        <Button onClick={() => fetchComments()}>댓글</Button>
+        <Button onClick={() => holdingAsset()}>자산산</Button>
       </Card>
     </Container>
   );
