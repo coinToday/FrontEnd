@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import styled from "styled-components";
 import axios from "axios";
+import "../app/index.css";
 
 export default function CoinAPI() {
   const [coinData, setCoinData] = useState(null);
@@ -34,10 +35,10 @@ export default function CoinAPI() {
 
   const buyCoin = async () => {
     try {
-      await axios.post("http://165.229.142.136:8080/buy_coin", {
-        coinName,
-        coinPrice: price,
-        amount,
+      await axios.post("http://165.229.142.80:8080/buy-coin", {
+        coinName: "DOGE",
+        coinPrice: "257",
+        cash: "10000",
       });
       alert("매수 완료");
     } catch (error) {
@@ -116,7 +117,7 @@ export default function CoinAPI() {
 
   return (
     <Container>
-      <Title>코인 API 테스트</Title>
+      <div className="text-2xl font-bold text-red-500">코인 API 테스트</div>
       <Card>
         <Input
           placeholder="코인명"
