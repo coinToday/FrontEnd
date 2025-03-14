@@ -1,7 +1,7 @@
-import back from "../shared/mainBack.svg";
-import phone from "../shared/phone.svg";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import back from "../shared/mainBack.svg";
+import phone from "../shared/phone.svg";
 
 interface ContainerProps {
   scaleValue: number;
@@ -31,7 +31,7 @@ export default function MainPage() {
   return (
     <div className="w-full m-0 flex flex-row relative z-0 overflow-x-hidden">
       <div className="w-full h-[1024px] bg-cover bg-center bg-no-repeat absolute z-[-1] overflow-hidden">
-        <div 
+        <div
           className={`w-full h-[100%] bg-cover bg-center bg-no-repeat absolute z-[-1]`}
           style={{
             backgroundImage: `url(${back})`,
@@ -64,9 +64,11 @@ export default function MainPage() {
               <div className="font-bold text-[1.4rem]">코인정보</div>
               <div className="flex flex-row justify-center items-center gap-8">
                 <div>
-                  <div className="w-[50px] h-[50px] bg-red-500 flex rounded-full float-left"></div>
-                  <div className="text-[1.5rem] font-normal">비트코인</div>
-                  <div className="text-[1em] font-medium">BTC</div>
+                  <div className="w-[50px] h-[50px] flex float-left"></div>
+                  <div className="flex flex-col pl-4">
+                    <div className="text-[1.5rem] font-normal">비트코인</div>
+                    <div className="text-[1em] font-medium">BTC</div>
+                  </div>
                 </div>
                 <div className="text-[3.37rem] font-medium tracking-tighter">147,400,000<span className="font-normal text-[2.25rem] pl-1.5">원</span></div>
               </div>
@@ -81,14 +83,14 @@ export default function MainPage() {
             <div className="flex flex-col md:flex-row justify-between items-center">
               {/* 왼쪽 텍스트 영역 */}
               <div className="w-full -mt-[10rem] ml-[7rem]">
-                <h2 className="text-[4rem] font-extrabold">
+                <h2 className="text-[3.5rem] font-bold">
                   RSI 구간별 예약 매매 기능
                 </h2>
-                <div className="text-[2.25rem] leading-tight mt-6">
+                <div className="text-[2.2rem] leading-tight mt-6">
                   <p>RSI 지수를 활용하여 원하는 매매 시점을 미리 설정하세요</p>
                   <p>나만의 매매 전략을 자유롭게 설정할 수 있습니다</p>
                 </div>
-                <button className=" mt-7 w-[22rem] h-[72px] bg-[#0088cc] hover:bg-[#0077b3] text-white rounded-full py-4 px-10 text-xl font-medium transition-all duration-300">
+                <button className=" mt-7 w-[22rem] h-[72px] bg-[#0088cc] hover:bg-[#0077b3] text-white rounded-full py-4 px-10 text-xl font-semibold transition-all duration-300">
                   Trade Now
                 </button>
                 
