@@ -17,8 +17,8 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        'sans': ['Pretendard', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
-        'pretendard': ['Pretendard', 'sans-serif'],
+        'sans': ['Pretendard Variable', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+        'pretendard': ['Pretendard Variable', 'sans-serif'],
       },
       fontWeight: {
         thin: '100',
