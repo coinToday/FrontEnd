@@ -1,9 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import { init, dispose } from "klinecharts";
-import { fetchInitialData } from "../features/CandleChart/api"; // HTTP 요청 함수
+import { fetchInitialData } from "../features/CandleChart/api"; //HTTP 요청 함수
 import axios from "axios";
-
 import styled from "styled-components";
+import { OrderBook, Trade } from "../features";
+
+// useEffect 클린업 함수 지정
+// FSD 구조로 변경, 사이드바로 코인리스트 옮기기
 
 interface Market {
   net_type: string;
@@ -27,7 +30,7 @@ const fetchMarketCodes = async () => {
 };
 
 const BitcoinChart: React.FC = () => {
-  const timeoutRef = useRef<number | null>(null); // setTimeout ID 저장
+  /*const timeoutRef = useRef<number | null>(null); // setTimeout ID 저장
   const chartRef = useRef<any>(null);
   const [markets, setMarkets] = useState<Market[]>([]);
   const [selectedMarket, setSelectedMarket] = useState<string | null>("BTC");
@@ -66,7 +69,7 @@ const BitcoinChart: React.FC = () => {
       console.log("markets", data);
     };
     loadMarkets();
-  }, [selectedMarket]);
+  }, []);
 
   useEffect(() => {
     console.log("차트", chart_interval);
@@ -176,13 +179,20 @@ const BitcoinChart: React.FC = () => {
           </div>
         )}
         <Cha id="btc-chart" />;
-      </ChartContainer>
-    </Container>
+      </ChartContainer>*/ return (
+    <SubContainer>
+      test
+      <Trade />
+      <OrderBook />
+    </SubContainer>
   );
 };
 
 export default BitcoinChart;
 
+const SubContainer = styled.div`
+  border: 1px solid black;
+`;
 const Cha = styled.div`
   margin-left: 200px;
   width: 800px;
