@@ -33,7 +33,7 @@ export const useTradeData = () => {
   }, []);
 
   useEffect(() => {
-    console.log("aldald연결상태", isConnected);
+    console.log("연결상태", isConnected);
     if (isConnected) {
       sendMessage({ type: "transaction", symbols: ["BTC_KRW", "ETH_KRW"] });
     }
