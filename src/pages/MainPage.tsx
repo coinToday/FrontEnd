@@ -96,8 +96,8 @@ export default function MainPage() {
                 
                 {/* RSI 설명 박스 */}
                 <div className="mt-[15rem] bg-[#ffffff]/10 rounded-xl p-6 max-w-md">
-                  <h3 className="font-bold text-xl mb-3">RSI란?</h3>
-                  <p className="text-xl font-pretendard leading-tight">
+                  <h3 className="font-bold text-xl mb-5">RSI란?</h3>
+                  <p className="text-xl font-light leading-7">
                     RSI (Relative Strength Index) 지표란<br/>
                     상대강도지수로, 주식의 추세 강도를 백분율로<br/>
                     나타내는 지표를 말해요. 보통 RSI가 70 이상이라면<br/>
