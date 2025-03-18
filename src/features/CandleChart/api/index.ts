@@ -1,15 +1,15 @@
 // 초기 캔들 차트 데이터를 불러오는 API 함수
-// 오픈 api에서 백엔드 api로 변경 
+// 오픈 api에서 백엔드 api로 변경
 export const fetchInitialData = async () => {
   try {
     const response = await fetch("http://116.126.197.110:30010/coin_price", {
-      method: "POST",
+      method: "GET",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         coinName: "XRP",
-        coinState: "1d",
+        coinState: "24h",
         startDate: "2025-01-12",
         endDate: "2025-02-12",
       }),
