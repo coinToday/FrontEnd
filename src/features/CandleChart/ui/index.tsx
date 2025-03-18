@@ -1,38 +1,17 @@
 import React, { useEffect, useRef, useState } from "react";
 import { init, dispose } from "klinecharts";
-import axios from "axios";
 import styled from "styled-components";
 import { fetchInitialData } from "../api";
+import { useCoinList } from "../../CoinList/model";
 // useEffect 클린업 함수 지정
-// FSD 구조로 변경, 사이드바로 코인리스트 옮기기
-
-interface Market {
-  net_type: string;
-  net_name: string;
-}
-
-const fetchMarketCodes = async () => {
-  try {
-    const response = await axios.get(
-      "https://api.bithumb.com/public/network-info",
-      {
-        headers: { accept: "application/json" },
-      }
-    );
-    console.log("network info", response.data.data);
-    return response.data.data;
-  } catch (error) {
-    console.error("Error fetching network info:", error);
-    throw error;
-  }
-};
 
 const BitcoinChart: React.FC = () => {
   const timeoutRef = useRef<number | null>(null); // setTimeout ID 저장
   const chartRef = useRef<any>(null);
-  const [markets, setMarkets] = useState<Market[]>([]);
-  const [selectedMarket, setSelectedMarket] = useState<string | null>("BTC");
+
   const [chart_interval, setChart_interval] = useState<string>("1M");
+
+  const { selectedMarket } = useCoinList();
 
   useEffect(() => {
     const chart = init("btc-chart");
@@ -61,16 +40,6 @@ const BitcoinChart: React.FC = () => {
   }, [selectedMarket, chart_interval]);
 
   useEffect(() => {
-    const loadMarkets = async () => {
-      const data = await fetchMarketCodes();
-      setMarkets(data);
-      console.log("markets", data);
-    };
-    loadMarkets();
-  }, []);
-
-  useEffect(() => {
-    console.log("차트", chart_interval);
     if (!selectedMarket || chart_interval !== "1M") return;
     const websocket = new WebSocket("wss://pubwss.bithumb.com/pub/ws");
 
@@ -129,16 +98,6 @@ const BitcoinChart: React.FC = () => {
 
   return (
     <Container>
-      <MarketContainer>
-        {markets.map((market) => (
-          <MarKetList
-            key={market.net_type}
-            onClick={() => setSelectedMarket(market.net_type)}
-          >
-            {market.net_name}
-          </MarKetList>
-        ))}
-      </MarketContainer>
       <ChartContainer>
         {selectedMarket && (
           <div>
@@ -197,19 +156,6 @@ const Container = styled.div`
 const ChartContainer = styled.div`
   display: flex;
   flex-direction: column;
-`;
-
-const MarKetList = styled.div`
-  cursor: pointer;
-  border: 1px solid black;
-  padding: 10px;
-`;
-
-const MarketContainer = styled.div`
-  height: 800px;
-  width: 200px;
-  overflow: auto;
-  margin-top: 100px;
 `;
 
 const IntervalContainer = styled.div`

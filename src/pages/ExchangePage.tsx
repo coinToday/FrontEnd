@@ -1,9 +1,10 @@
-import { CandleChart, OrderBook, Trade } from "../features";
+import { CandleChart, CoinList, OrderBook, Trade } from "../features";
 
 export default function ExchangePage() {
   return (
     <div className="flex flex-col gap-4">
-      <div>
+      <div className="flex flex-row">
+        <CoinList />
         <CandleChart />
       </div>
       <div className="flex flex-col gap-4">
