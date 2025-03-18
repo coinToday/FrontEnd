@@ -4,9 +4,9 @@ import styled from "styled-components";
 import { fetchInitialData } from "../api";
 import { useCoinList } from "../../CoinList/model";
 // useEffect 클린업 함수 지정
+// 웹소캣 삭제 -> 분봉별 백엔드와의 http 통신 리다이렉트로 변경 예정
 
 const BitcoinChart: React.FC = () => {
-  const timeoutRef = useRef<number | null>(null); // setTimeout ID 저장
   const chartRef = useRef<any>(null);
 
   const [chart_interval, setChart_interval] = useState<string>("1M");
@@ -20,10 +20,7 @@ const BitcoinChart: React.FC = () => {
     // 초기 캔들 데이터 로드
     const loadInitialData = async () => {
       if (!selectedMarket) return;
-      const initialData = await fetchInitialData(
-        selectedMarket,
-        chart_interval
-      );
+      const initialData = await fetchInitialData();
       if (initialData.length > 0) {
         if (chart) {
           chart.applyNewData(initialData);
@@ -36,63 +33,6 @@ const BitcoinChart: React.FC = () => {
     return () => {
       dispose("btc-chart");
       chartRef.current = null;
-    };
-  }, [selectedMarket, chart_interval]);
-
-  useEffect(() => {
-    if (!selectedMarket || chart_interval !== "1M") return;
-    const websocket = new WebSocket("wss://pubwss.bithumb.com/pub/ws");
-
-    if (chart_interval === "1M") {
-      websocket.onopen = () => {
-        console.log("WebSocket connected");
-        console.log("selectedMarket!!", selectedMarket);
-        if (selectedMarket) {
-          websocket.send(
-            JSON.stringify({
-              type: "ticker",
-              symbols: [`${selectedMarket}_KRW`],
-              tickTypes: ["1M"],
-            })
-          );
-        }
-      };
-
-      websocket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        console.log("timeref", timeoutRef.current);
-        if (data?.content) {
-          const { content } = data;
-
-          if (!timeoutRef.current) {
-            timeoutRef.current = window.setTimeout(() => {
-              const { openPrice, highPrice, lowPrice, closePrice, volume } =
-                content;
-              const newData = {
-                timestamp: Date.now(),
-                open: Number(openPrice),
-                high: Number(highPrice),
-                low: Number(lowPrice),
-                close: Number(closePrice),
-                volume: Number(volume),
-              };
-
-              if (chartRef.current) {
-                chartRef.current.updateData(newData);
-                console.log("newData (delayed)", newData);
-                timeoutRef.current = null;
-              }
-            }, 60000);
-          }
-        }
-      };
-    }
-
-    websocket.onclose = () => console.log("WebSocket disconnected");
-    websocket.onerror = (error) => console.error("WebSocket error:", error);
-
-    return () => {
-      websocket.close();
     };
   }, [selectedMarket, chart_interval]);
 
