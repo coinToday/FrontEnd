@@ -10,7 +10,7 @@ export default function SideBar() {
 const BarLine = styled.div`
   width: 80px;
   height: 100vh;
-  background-color: #181818;
+  background-color: #101013;
   padding: 1rem 1.5rem;
   margin: 0;
   color: wheat;
