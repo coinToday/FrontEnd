@@ -1,12 +1,14 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { create } from "zustand";
+import mainBack from "../shared/mainBack.svg";
 
 // 뉴스 아이템 인터페이스
 interface NewsItem {
     title: string;
     url: string;
     image: string;
+    content: string;
     newspaper: string;
     time: string;
 }
@@ -197,6 +199,9 @@ export default function NewsPage() {
                     </div>
                     <div className="flex flex-col items-start">
                     <h2 className="text-xl font-bold mb-2 text-fc">{order[0].title}</h2>
+                    <div>
+                        <p>{order[0].content}</p>
+                    </div>
                     <div className="font-bold text-sm text-fc">
                         <span>{order[0].newspaper}</span>
                         <span className="mx-2">•</span>
@@ -211,15 +216,16 @@ export default function NewsPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
                 {order.slice(1).map((item, index) => (
                 <div key={index} onClick={() => handleOrder(index + 1)}>
-                    <div className="w-full h-[7rem] overflow-hidden rounded-xl">
+                    <div className="w-full h-[7.5rem] overflow-hidden rounded-xl">
+                    {/* src가 none일 때 자체 이미지 넣기 */}
                     <img
-                        src={item.image}
+                        src={item.image === 'None' ? mainBack : item.image}
                         alt={item.title}
                         className="w-full h-full object-cover"
                     />
                     </div>
-                    <div className="p-4 flex-1 flex flex-col">
-                    <h3 className="font-medium line-clamp-2 mb-2 text-">{item.title}</h3>
+                    <div className="pt-4 flex-1 flex flex-col">
+                    <h3 className="font-medium line-clamp-2 mb-2 text-fc">{item.title}</h3>
                     <div className="font-semibold text-xs text-[#9E9EA4] mt-auto">
                         <span>{item.newspaper}</span>
                         <span className="mx-1">•</span>
@@ -231,5 +237,5 @@ export default function NewsPage() {
             </div>
             </div>
         </div>
-        );
+    );
 }
