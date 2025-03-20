@@ -1,63 +1,48 @@
-import { useEffect, useRef, useReducer, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { fetchCoinList } from "../api";
+import { create } from "zustand";
 
 interface Market {
   coinCode: string;
   englishName: string;
   koreanName: string;
+  rsi: string;
 }
 
-type State = {
+// zustand 스토어
+interface CoinListStore {
   markets: Market[];
-  selectedMarket: string | null;
-};
+  coin: string;
+  setCoin: (coinName: string) => void;
+  fetchCoinList: () => Promise<void>;
+}
 
-type Action =
-  | { type: "SET_MARKETS"; payload: Market[] }
-  | { type: "SET_SELECTED_MARKET"; payload: string };
-
-const reducer = (state: State, action: Action): State => {
-  switch (action.type) {
-    case "SET_MARKETS":
-      return { ...state, markets: action.payload };
-    case "SET_SELECTED_MARKET":
-      return { ...state, selectedMarket: action.payload };
-    default:
-      return state;
-  }
-};
+const useCoinListStore = create<CoinListStore>((set) => ({
+  markets: [],
+  coin: "BTC",
+  fetchCoinList: async () => {
+    try {
+      const data = await fetchCoinList();
+      set({ markets: data });
+    } catch (error) {
+      console.error("코인 리스트 에러:", error);
+    }
+  },
+  setCoin: (coinName) => set({ coin: coinName }),
+}));
 
 export const useCoinList = () => {
-  const [{ markets, selectedMarket }, dispatch] = useReducer(reducer, {
-    markets: [],
-    selectedMarket: "BTC",
-  });
-
-  const isFetched = useRef(false);
+  const { markets, fetchCoinList, setCoin } = useCoinListStore();
 
   useEffect(() => {
-    if (isFetched.current) return; // 이미 데이터를 가져왔으면 API 호출 X
-
-    const loadMarkets = async () => {
-      try {
-        const data = await fetchCoinList();
-        dispatch({ type: "SET_MARKETS", payload: data });
-        console.log("코인리스트:", data);
-        isFetched.current = true;
-      } catch (error) {
-        console.error("코인 리스트 불러오기 실패:", error);
-      }
-    };
-
-    loadMarkets();
+    fetchCoinList();
   }, []);
 
   const memoizedMarkets = useMemo(() => markets, [markets]);
+  const memoizedSetCoin = useCallback(setCoin, [setCoin]);
 
   return {
     markets: memoizedMarkets,
-    selectedMarket,
-    setSelectedMarket: (market: string) =>
-      dispatch({ type: "SET_SELECTED_MARKET", payload: market }),
+    setCoin: memoizedSetCoin,
   };
 };

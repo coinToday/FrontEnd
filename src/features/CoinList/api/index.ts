@@ -7,6 +7,6 @@ export const fetchCoinList = async () => {
       headers: { accept: "application/json" },
     }
   );
-  console.log("코인 차트 호출:", response.data.data);
+  console.log("코인 차트 호출:", response.data);
   return response.data;
 };
