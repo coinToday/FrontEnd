@@ -18,6 +18,7 @@ module.exports = {
     extend: {
       colors: {
         'fc': '#E4E4E5',
+        'dark-bg': '#202027',
       },
       fontFamily: {
         'sans': ['Pretendard Variable', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
