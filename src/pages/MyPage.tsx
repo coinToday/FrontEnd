@@ -1,3 +1,7 @@
+import { OrderSetting } from "../features";
+
 export default function Mypage() {
-  return <div className="text-red-500 font-bold">Tailwind 적용됨!</div>;
+  return(
+    <OrderSetting></OrderSetting>
+  )
 }
