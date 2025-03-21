@@ -1,5 +1,6 @@
+import { useCoin } from "../../../shared";
 import { useCoinList } from "../model";
-import { memo, useCallback } from "react";
+import { memo } from "react";
 
 interface Market {
   coinCode: string;
@@ -9,26 +10,20 @@ interface Market {
 }
 
 const CoinListUi = () => {
-  const { markets, setCoin } = useCoinList();
-
-  const handleSelectMarket = useCallback(
-    (coinCode: string) => {
-      setCoin(coinCode);
-      console.log("선택한 코인", coinCode);
-    },
-    [setCoin]
-  );
+  const { markets } = useCoinList();
+  const { handleSelectMarket } = useCoin();
 
   return (
     <div className="h-screen w-96 flex items-center justify-center bg-white">
       <div className="h-[80vh] w-full overflow-auto border border-black">
-        {markets.map((market) => (
-          <MemoizedMarketList
-            key={market.coinCode}
-            onSelect={handleSelectMarket}
-            market={market}
-          />
-        ))}
+        {markets &&
+          markets.map((market) => (
+            <MemoizedMarketList
+              key={market.coinCode}
+              onSelect={handleSelectMarket}
+              market={market}
+            />
+          ))}
       </div>
     </div>
   );

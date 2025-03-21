@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export const fetchCoinList = async () => {
+export const fetchCoin = async () => {
   const response = await axios.get(
     "http://116.126.197.110:30010/coin-name-list",
     {
