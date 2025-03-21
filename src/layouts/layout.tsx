@@ -20,5 +20,5 @@ const Container = styled.div`
 `;
 const Content = styled.div`
   flex-grow: 1;
-  margin-left: 80px;
+  margin-left: 60px;
 `;
