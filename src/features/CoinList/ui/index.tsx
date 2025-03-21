@@ -44,7 +44,7 @@ const MarketList = memo(
   }) => {
     return (
       <div
-        className="border border-black flex flex-row justify-between items-start px-2 cursor-pointer hover:bg-blue-100 active:bg-orange-100"
+        className="border border-black flex flex-row justify-between items-start px-2 cursor-pointer text-black hover:bg-blue-100 active:bg-orange-100"
         onClick={() => onSelect(market.coinCode)}
       >
         <div className="flex flex-col justify-center items-start">

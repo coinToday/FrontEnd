@@ -9,7 +9,7 @@ interface Market {
   rsi: string;
 }
 
-// zustand 스토어
+// zustand 스토어 인터페이스
 interface CoinListStore {
   markets: Market[];
   coin: string;
@@ -17,6 +17,7 @@ interface CoinListStore {
   fetchCoinList: () => Promise<void>;
 }
 
+// zustand에 코인 api와 선택한 코인을 저장하는 함수
 const useCoinListStore = create<CoinListStore>((set) => ({
   markets: [],
   coin: "BTC",
@@ -35,8 +36,8 @@ export const useCoinList = () => {
   const { markets, fetchCoinList, setCoin } = useCoinListStore();
 
   useEffect(() => {
-    fetchCoinList();
-  }, []);
+    if (markets.length === 0) fetchCoinList();
+  }, [markets.length]);
 
   const memoizedMarkets = useMemo(() => markets, [markets]);
   const memoizedSetCoin = useCallback(setCoin, [setCoin]);
