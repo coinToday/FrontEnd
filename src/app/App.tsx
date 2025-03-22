@@ -1,6 +1,6 @@
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import { Layout1 } from "../layouts/index";
-import { ExchangePage, LoginPage, MainPage, MyPage, TestPage, NewsPage } from "./index";
+import { ExchangePage, LoginPage, MainPage, TestPage, NewsPage } from "./index";
 import "./index.css";
 
 const router = createBrowserRouter([
@@ -11,7 +11,6 @@ const router = createBrowserRouter([
       { path: "test", element: <TestPage /> },
       { path: "/", element: <MainPage /> },
       { path: "news", element: <NewsPage /> },
-      { path: "my", element: <MyPage /> },
       { path: "login", element: <LoginPage /> },
       { path: "exchange", element: <ExchangePage /> },
     ],
