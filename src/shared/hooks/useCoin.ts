@@ -1,4 +1,5 @@
 import { useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { create } from "zustand";
 
 // zustand 스토어 인터페이스
@@ -14,14 +15,16 @@ const useCoinStore = create<CoinListStore>((set) => ({
 
 export default function useCoin() {
   const { coin, setCoin } = useCoinStore();
+  const navigate = useNavigate();
 
   const handleSelectMarket = useCallback(
     (coinCode: string) => {
       setCoin(coinCode);
-      console.log("선택한 코인", coinCode, useCoinStore.getState().coin);
+      navigate(`/exchange/${coinCode}`);
+      // console.log("선택한 코인", coinCode);
     },
-    [setCoin]
+    [setCoin, navigate]
   );
 
-  return { coin, handleSelectMarket };
+  return { coin, handleSelectMarket, setCoin };
 }
