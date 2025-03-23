@@ -1,63 +1,47 @@
-import { useEffect, useRef, useReducer, useMemo } from "react";
-import { fetchCoinList } from "../api";
+import { create } from "zustand";
+import { fetchCoin } from "../api";
+import { useEffect } from "react";
 
 interface Market {
   coinCode: string;
   englishName: string;
   koreanName: string;
+  rsi: string;
 }
 
-type State = {
+// zustand store 인터페이스
+interface CoinListStore {
   markets: Market[];
-  selectedMarket: string | null;
-};
+  loading: boolean;
+  fetchCoinList: () => Promise<void>;
+}
 
-type Action =
-  | { type: "SET_MARKETS"; payload: Market[] }
-  | { type: "SET_SELECTED_MARKET"; payload: string };
+const useCoinListStore = create<CoinListStore>((set) => ({
+  markets: [],
+  loading: false,
+  fetchCoinList: async () => {
+    // 이미 로딩 중이면 중복 호출 방지
+    if (useCoinListStore.getState().loading) return;
 
-const reducer = (state: State, action: Action): State => {
-  switch (action.type) {
-    case "SET_MARKETS":
-      return { ...state, markets: action.payload };
-    case "SET_SELECTED_MARKET":
-      return { ...state, selectedMarket: action.payload };
-    default:
-      return state;
-  }
-};
+    set({ loading: true });
+    try {
+      const data = await fetchCoin();
+      set({ markets: data, loading: false });
+    } catch (error) {
+      console.error("코인 리스트 에러:", error);
+      set({ loading: false });
+    }
+  },
+}));
 
 export const useCoinList = () => {
-  const [{ markets, selectedMarket }, dispatch] = useReducer(reducer, {
-    markets: [],
-    selectedMarket: "BTC",
-  });
-
-  const isFetched = useRef(false);
+  const { markets, fetchCoinList } = useCoinListStore();
 
   useEffect(() => {
-    if (isFetched.current) return; // 이미 데이터를 가져왔으면 API 호출 X
+    if (markets.length === 0) {
+      fetchCoinList();
+    }
+  }, []); // 최초 한 번만 호출되도록 빈 의존성 배열 사용
 
-    const loadMarkets = async () => {
-      try {
-        const data = await fetchCoinList();
-        dispatch({ type: "SET_MARKETS", payload: data });
-        console.log("코인리스트:", data);
-        isFetched.current = true;
-      } catch (error) {
-        console.error("코인 리스트 불러오기 실패:", error);
-      }
-    };
-
-    loadMarkets();
-  }, []);
-
-  const memoizedMarkets = useMemo(() => markets, [markets]);
-
-  return {
-    markets: memoizedMarkets,
-    selectedMarket,
-    setSelectedMarket: (market: string) =>
-      dispatch({ type: "SET_SELECTED_MARKET", payload: market }),
-  };
+  return { markets };
 };
