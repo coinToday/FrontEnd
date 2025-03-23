@@ -1,29 +1,24 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useWebsocket } from "../../../shared";
-
-type OrderbookEntry = [string, string]; // [price, quantity]
-
-interface OrderbookData {
-  asks: OrderbookEntry[];
-  bids: OrderbookEntry[];
-}
 
 export function useOrderbook() {
   const { sendMessage, orderbookData } = useWebsocket();
-  const [orderbook, setOrderbook] = useState<OrderbookData>({
-    asks: [],
-    bids: [],
-  });
+  const cacheRef = useRef(
+    sessionStorage.getItem("orderbookData")
+      ? JSON.parse(sessionStorage.getItem("orderbookData")!)
+      : null
+  );
 
   useEffect(() => {
     sendMessage({ type: "orderbooksnapshot", symbols: ["BTC_KRW"] });
   }, [sendMessage]);
 
   useEffect(() => {
-    if (orderbookData.length > 0) {
-      setOrderbook(orderbookData[0]);
+    if (orderbookData) {
+      cacheRef.current = orderbookData;
+      sessionStorage.setItem("orderbookData", JSON.stringify(orderbookData));
     }
   }, [orderbookData]);
 
-  return { orderbook };
+  return { orderbookData: orderbookData || cacheRef.current };
 }

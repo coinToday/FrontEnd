@@ -24,16 +24,19 @@ type OrderbookData = {
 export default function useWebsocket() {
   const wsRef = useRef<WebSocket | null>(null);
   const tradeBuffer = useRef<TradeData[]>([]);
-  const orderbookBuffer = useRef<OrderbookData[]>([]);
+  const orderbookBuffer = useRef<OrderbookData | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [tradeData, setTradeData] = useState<TradeData[]>([]);
-  const [orderbookData, setOrderbookData] = useState<OrderbookData[]>([]);
+  const [orderbookData, setOrderbookData] = useState<OrderbookData>();
 
-  const sendMessage = (message: object) => {
-    if (wsRef.current && isConnected) {
-      wsRef.current.send(JSON.stringify(message));
-    }
-  };
+  const sendMessage = useCallback(
+    (message: object) => {
+      if (wsRef.current && isConnected) {
+        wsRef.current.send(JSON.stringify(message));
+      }
+    },
+    [isConnected]
+  );
 
   const connectWebsocket = useCallback(() => {
     if (wsRef.current) return; //이미 연결 중일 경우 중복연결 방지
@@ -45,39 +48,42 @@ export default function useWebsocket() {
       setIsConnected(true);
       console.log("연결상태", isConnected);
     };
+    // 들어오는 웹소캣 데이터들은 실시간으로 버퍼에 저장
     wsRef.current.onmessage = (event) => {
       const message = JSON.parse(event.data);
-
       if (message.type === "transaction") {
         tradeBuffer.current = [
           ...tradeBuffer.current,
           ...message.content.list,
         ].slice(-50);
       } else if (message.type === "orderbooksnapshot") {
-        // orderbookBuffer 크기를 1로 유지-> 추후 수정
-        orderbookBuffer.current = [message.content];
+        orderbookBuffer.current = message.content;
       }
-
-      console.log("메시지 수신", message);
-      console.log("tradeBuffer", tradeBuffer.current);
     };
+
     wsRef.current.onclose = (event) => {
-      console.log("웹소캣 연결 끊김. 2초 후 재연결 시도");
-      console.log("웹소켓 닫힘! 코드:", event.code, "이유:", event.reason);
+      console.log(
+        "웹소캣 연결 끊김.재연결 시도, 코드:",
+        event.code,
+        "이유:",
+        event.reason
+      );
       setIsConnected(false);
       wsRef.current = null;
-      setTimeout(connectWebsocket, 2000); // 재연결 시도
+      connectWebsocket();
     };
   }, []); // 빈 배열로 유지하여 함수가 재생성되지 않도록 함
 
   useEffect(() => {
     connectWebsocket();
 
-    // 1초마다 tradeBuffer와 orderbookBuffer를 useState에 업데이트
+    // 1초마다 화면에 데이터 업뎃
     const interval = setInterval(() => {
       setTradeData([...tradeBuffer.current]);
-      setOrderbookData([...orderbookBuffer.current]);
-    }, 2000);
+      if (orderbookBuffer.current) {
+        setOrderbookData(orderbookBuffer.current);
+      }
+    }, 1000);
 
     return () => {
       if (wsRef.current) {
@@ -87,7 +93,6 @@ export default function useWebsocket() {
     }; // 클린업 함수 - 언마운트시 실행
   }, []); //마운트시 실행
 
-  console.log("트레이드", tradeData);
   return {
     isConnected,
     sendMessage,
@@ -95,7 +100,3 @@ export default function useWebsocket() {
     orderbookData,
   };
 }
-
-
-
-
