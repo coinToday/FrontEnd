@@ -3,7 +3,7 @@ import { useOrderbook } from "../model";
 type OrderbookEntry = [string, string];
 
 export default function OrderbookChart() {
-  const { orderbook } = useOrderbook();
+  const { orderbookData } = useOrderbook();
 
   const formatData = (orders: OrderbookEntry[], type: "ask" | "bid") => {
     const maxQuantity = Math.max(
@@ -49,8 +49,8 @@ export default function OrderbookChart() {
         <span className="min-w-[15rem]">수량(BTC)</span>
       </div>
       <div className="max-h-[32rem] overflow-y-auto border border-gray-300 rounded-md mt-2">
-        {formatData(orderbook.asks, "ask")}
-        {formatData(orderbook.bids, "bid")}
+        {orderbookData && formatData(orderbookData.asks, "ask")}
+        {orderbookData && formatData(orderbookData.bids, "bid")}
       </div>
     </div>
   );
