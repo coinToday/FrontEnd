@@ -199,13 +199,13 @@ export default function NewsPage() {
                     </div>
                     <div className="flex flex-col items-start">
                     <h2 className="text-xl font-bold mb-2 text-fc">{order[0].title}</h2>
-                    <div>
-                        <p>{order[0].content}</p>
-                    </div>
-                    <div className="font-bold text-sm text-fc">
-                        <span>{order[0].newspaper}</span>
-                        <span className="mx-2">•</span>
+                    <div className="font-bold text-sm text-[#9E9EA4] mt-2">
                         <span>{order[0].time}</span>
+                        <span className="mx-2">•</span>
+                        <span>{order[0].newspaper}</span>
+                    </div>
+                    <div>
+                        <p className="mt-7 font-semibold text-left text-[#9E9EA4] leading-7">{order[0].content}</p>
                     </div>
                     </div>
                 </div>
