@@ -48,13 +48,8 @@ export const useTradeData = () => {
     // 타입 단언을 사용하여 웹소켓 데이터를 명시적으로 WebsocketTradeData 배열로 지정
     const wsData = wsTradeData as WebsocketTradeData[];
     
-    // 선택된 코인에 맞는 데이터만 필터링
-    const filteredTrades = wsData.filter(
-      (t: WebsocketTradeData) => t.symbol === `${selectedMarket}_KRW`
-    );
-    
     // 웹소켓 데이터를 TradeData 형식으로 변환
-    const convertedTrades: TradeData[] = filteredTrades
+    const convertedTrades: TradeData[] = wsData
       .map((t: WebsocketTradeData) => ({
         transaction_date: t.contDtm,
         price: t.contPrice,
