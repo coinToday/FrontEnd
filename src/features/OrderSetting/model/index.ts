@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useCoin } from "../../../shared";
 import { useWebsocket } from "../../../shared";
 import { fetchCoinPrice } from "../api";
@@ -9,65 +9,28 @@ export function useOrderSetting() {
   const [price, setPrice] = useState("");
   const [totalAmount, setTotalAmount] = useState("0");
   const [isLoading, setIsLoading] = useState(true);
-  const [currentPriceInfo, setCurrentPriceInfo] = useState<{ price: string, isUp: boolean } | null>(null);
-  const [marketPriceInfo, setMarketPriceInfo] = useState<{ price: string } | null>(null);
   
   // 선택된 코인 정보 가져오기
   const { coin: selectedMarket } = useCoin();
-  const { orderbookData, tradeData, sendMessage, isConnected } = useWebsocket();
+  const { orderbookData, tradeData, isConnected } = useWebsocket();
   
-  // 이전 코인 기록
-  const prevCoinRef = useRef<string | null>(null);
-  
-  // 코인 변경 감지 및 데이터 로드
-  useEffect(() => {
-    if (!selectedMarket) return;
+  // 현재가 정보 - API와 실시간 거래 데이터에서 계산
+  const currentPriceInfo = useMemo(() => {
+    if (!selectedMarket || !tradeData || tradeData.length === 0) return null;
     
-    const loadCoinData = async () => {
-      // 코인이 변경된 경우에만 로딩 상태로 전환
-      if (prevCoinRef.current !== selectedMarket) {
-        setIsLoading(true);
-        prevCoinRef.current = selectedMarket;
-        
-        // 웹소켓 구독
-        if (isConnected) {
-          sendMessage({
-            type: "orderbooksnapshot",
-            symbols: [`${selectedMarket}_KRW`]
-          });
-          
-          sendMessage({
-            type: "transaction",
-            symbols: [`${selectedMarket}_KRW`]
-          });
-        }
-        
-        // API로 현재가 가져오기
-        try {
-          const priceData = await fetchCoinPrice(selectedMarket);
-          if (priceData && priceData.closing_price) {
-            setPrice(priceData.closing_price);
-            
-            // 현재가 정보 업데이트
-            setCurrentPriceInfo({
-              price: parseInt(priceData.closing_price).toLocaleString(),
-              isUp: priceData.fluctate_24H.startsWith("-") ? false : true
-            });
-          }
-        } catch (error) {
-          console.error("현재가 로드 오류:", error);
-        } finally {
-          setIsLoading(false);
-        }
-      }
-    };
-    
-    loadCoinData();
-  }, [selectedMarket, isConnected, sendMessage]);
+    const latestTrade = tradeData.find(trade => trade.symbol === `${selectedMarket}_KRW`);
+    if (latestTrade) {
+      return {
+        price: parseInt(latestTrade.contPrice).toLocaleString(),
+        isUp: latestTrade.updn === "up"
+      };
+    }
+    return null;
+  }, [tradeData, selectedMarket]);
   
-  // 오더북 데이터 업데이트 시 시장가 정보 갱신
-  useEffect(() => {
-    if (!selectedMarket || !orderbookData) return;
+  // 시장가 정보 - 오더북에서 계산
+  const marketPriceInfo = useMemo(() => {
+    if (!selectedMarket || !orderbookData) return null;
     
     let currentOrderbook = null;
     
@@ -79,42 +42,51 @@ export function useOrderSetting() {
     
     if (currentOrderbook && currentOrderbook.asks && currentOrderbook.asks.length > 0) {
       const lowestAsk = currentOrderbook.asks[0][0];
-      
-      // 시장가 정보 업데이트
-      setMarketPriceInfo({
+      return {
         price: parseInt(lowestAsk).toLocaleString()
-      });
+      };
+    }
+    
+    return null;
+  }, [orderbookData, selectedMarket]);
+  
+  // 코인 변경 시 초기 데이터 로드
+  useEffect(() => {
+    if (!selectedMarket) return;
+    
+    const loadInitialData = async () => {
+      setIsLoading(true);
       
-      // 시장가 모드일 때 가격 업데이트
-      if (selectedPriceType === "시장가") {
-        setPrice(lowestAsk);
+      try {
+        const priceData = await fetchCoinPrice(selectedMarket);
+        if (priceData && priceData.closing_price) {
+          setPrice(priceData.closing_price);
+        }
+      } catch (error) {
+        console.error("현재가 로드 오류:", error);
+      } finally {
+        setIsLoading(false);
       }
-    }
-  }, [orderbookData, selectedMarket, selectedPriceType]);
-  
-  // 체결 데이터 업데이트 시 현재가 정보 갱신
-  useEffect(() => {
-    if (!selectedMarket || !tradeData || tradeData.length === 0) return;
+    };
     
-    const latestTrade = tradeData.find(trade => trade.symbol === `${selectedMarket}_KRW`);
-    if (latestTrade) {
-      setCurrentPriceInfo({
-        price: parseInt(latestTrade.contPrice).toLocaleString(),
-        isUp: latestTrade.updn === "up"
-      });
-    }
-  }, [tradeData, selectedMarket]);
+    loadInitialData();
+  }, [selectedMarket]);
   
-  // 가격 타입 변경 시
+  // 시장가 모드일 때 가격 업데이트
   useEffect(() => {
-    if (!selectedMarket || !marketPriceInfo) return;
-    
     if (selectedPriceType === "시장가" && marketPriceInfo) {
-      // 시장가 모드로 변경 시 오더북의 최저 매도가로 설정
       const unformattedPrice = marketPriceInfo.price.replace(/,/g, '');
       setPrice(unformattedPrice);
     }
-  }, [selectedPriceType, marketPriceInfo, selectedMarket]);
+  }, [selectedPriceType, marketPriceInfo]);
+  
+  // 지정가 모드가 아닐 때 체결 가격 기반 업데이트
+  useEffect(() => {
+    if (selectedPriceType !== "지정가" && currentPriceInfo) {
+      const unformattedPrice = currentPriceInfo.price.replace(/,/g, '');
+      setPrice(unformattedPrice);
+    }
+  }, [selectedPriceType, currentPriceInfo]);
   
   // 총액 계산
   useEffect(() => {
@@ -138,16 +110,6 @@ export function useOrderSetting() {
     }
   };
   
-  // 현재가 정보 가져오기 함수
-  const getCurrentPriceInfo = () => {
-    return currentPriceInfo;
-  };
-  
-  // 시장가 정보 가져오기 함수
-  const getMarketPriceInfo = () => {
-    return marketPriceInfo;
-  };
-  
   return {
     selectedMarket,
     selectedPriceType,
@@ -160,7 +122,7 @@ export function useOrderSetting() {
     isLoading,
     increaseQuantity,
     decreaseQuantity,
-    getCurrentPriceInfo,
-    getMarketPriceInfo
+    getCurrentPriceInfo: () => currentPriceInfo,
+    getMarketPriceInfo: () => marketPriceInfo
   };
 }
