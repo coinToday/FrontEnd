@@ -2,8 +2,9 @@ import axios from "axios";
 
 export const fetchCoin = async () => {
   const response = await axios.get(
-    "http://116.126.197.110:30010/coin-name-list?state=like",
+    "http://116.126.197.110:30010/coin-name-list",
     {
+      params: { userId: "alice001", state: "like" },
       headers: { accept: "application/json" },
     }
   );

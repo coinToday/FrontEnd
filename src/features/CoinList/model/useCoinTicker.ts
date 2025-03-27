@@ -5,7 +5,7 @@ import useCoinList from "./useCoinList";
 interface Ticker {
   coinCode: string;
   price: string;
-  changeRate: string;
+  changeRate: number;
   tradeVolume: string;
 }
 
@@ -34,8 +34,8 @@ export default function useCoinTicker() {
         ? {
             coinCode,
             price: ticker.closing_price,
-            changeRate: ticker.fluctate_rate_24H,
-            tradeVolume: ticker.acc_trade_value_24H,
+            changeRate: parseFloat(ticker.fluctate_rate_24H),
+            tradeVolume: (ticker.acc_trade_value_24H / 1_000_000).toFixed(2),
           }
         : null;
     })

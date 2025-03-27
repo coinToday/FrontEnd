@@ -7,6 +7,7 @@ interface Market {
   englishName: string;
   koreanName: string;
   rsi: string;
+  like?: boolean;
 }
 
 // zustand store 인터페이스
