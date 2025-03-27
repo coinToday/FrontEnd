@@ -1,6 +1,13 @@
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import { Layout1 } from "../layouts/index";
-import { ExchangePage, LoginPage, MainPage, TestPage, NewsPage } from "./index";
+import {
+  ExchangePage,
+  LoginPage,
+  MainPage,
+  TestPage,
+  NewsPage,
+  JoinPage,
+} from "./index";
 import "./index.css";
 
 const router = createBrowserRouter([
@@ -13,6 +20,7 @@ const router = createBrowserRouter([
       { path: "news", element: <NewsPage /> },
       { path: "login", element: <LoginPage /> },
       { path: "exchange", element: <ExchangePage /> },
+      { path: "join", element: <JoinPage /> },
     ],
   },
 ]);

@@ -2,16 +2,16 @@ import React, { useEffect, useRef, useState } from "react";
 import { init, dispose } from "klinecharts";
 import styled from "styled-components";
 import { fetchInitialData } from "../api";
-import { useCoinList } from "../../CoinList/model";
-// useEffect 클린업 함수 지정
-// 웹소캣 삭제 -> 분봉별 백엔드와의 http 통신 리다이렉트로 변경 예정
+import { useCoin } from "../../../shared";
+
+// 분봉별 백엔드와의 http 통신 리다이렉트로 변경 예정
 
 const BitcoinChart: React.FC = () => {
   const chartRef = useRef<any>(null);
 
   const [chart_interval, setChart_interval] = useState<string>("1M");
 
-  const { selectedMarket } = useCoinList();
+  const { coin: selectedMarket } = useCoin();
 
   useEffect(() => {
     const chart = init("btc-chart");
@@ -20,7 +20,10 @@ const BitcoinChart: React.FC = () => {
     // 초기 캔들 데이터 로드
     const loadInitialData = async () => {
       if (!selectedMarket) return;
-      const initialData = await fetchInitialData();
+      const initialData = await fetchInitialData(
+        selectedMarket,
+        chart_interval  
+      );
       if (initialData.length > 0) {
         if (chart) {
           chart.applyNewData(initialData);

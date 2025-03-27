@@ -1,25 +1,36 @@
 // 초기 캔들 차트 데이터를 불러오는 API 함수
-// 오픈 api에서 백엔드 api로 변경
+
+import axios from "axios";
+
 export const fetchInitialData = async () => {
   try {
-    const response = await fetch("http://116.126.197.110:30010/coin_price", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        coinName: "XRP",
-        coinState: "24h",
-        startDate: "2025-01-12",
-        endDate: "2025-02-12",
-      }),
-    });
+    const response = await axios.get(
+      "http://116.126.197.110:30010/coin_price",
+      {
+        params: {
+          coinName: "XRP",
+          coinState: "1M",
+          startDate: "2025-02-12-01:50",
+          endDate: "2025-02-23-10:45",
+        },
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
-    const data = await response.json();
-    console.log("코인 가격 데이터:", data);
+    const data = response.data;
+    console.log("코인 차트 가격 데이터:", data);
+  } catch (error) {
+    console.error("차트용 가격 로드 실패:", error);
+    return [];
+  }
+};
 
-    if (!response.ok) throw new Error("API 요청 실패");
+/* 
 
+  selectedMarket: string,
+  chart_interval: string
     return data.map((item: any) => ({
       coinName: item.coinName,
       timestamp: new Date(item.coinDate).getTime(), // 타임스탬프 변환
@@ -29,9 +40,4 @@ export const fetchInitialData = async () => {
       low: Number(item.minPrice), // 저가
       volume: Number(item.unitsTraded), // 거래량
       ris: Number(item.ris), // RSI 지수
-    }));
-  } catch (error) {
-    console.error("초기 데이터 로드 실패:", error);
-    return [];
-  }
-};
+    })); */
