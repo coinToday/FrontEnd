@@ -13,6 +13,7 @@ const router = createBrowserRouter([
       { path: "news", element: <NewsPage /> },
       { path: "login", element: <LoginPage /> },
       { path: "exchange", element: <ExchangePage /> },
+      { path: "exchange/:coinCode", element: <ExchangePage /> },
     ],
   },
 ]);

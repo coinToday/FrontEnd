@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { CoinList, Mypage } from "../../../features";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 export default function SideBar() {
   const [sidebar, setSidebar] = useState<{
@@ -34,8 +34,11 @@ export default function SideBar() {
       >
         홈
       </Link>
+      <div>
+        <a href="/news">뉴스홈</a>
+      </div>
       <Link
-        to="/exchange"
+        to="/exchange/BTC"
         className="block p-2 text-wheat no-underline "
         onClick={() => closeSideBar()}
       >
