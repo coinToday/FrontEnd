@@ -14,7 +14,6 @@ const router = createBrowserRouter([
       { path: "login", element: <LoginPage /> },
       { path: "exchange", element: <ExchangePage /> },
       { path: "exchange/:coinCode", element: <ExchangePage /> },
-      { path: "mypage", element: <Mypage /> },
     ],
   },
 ]);

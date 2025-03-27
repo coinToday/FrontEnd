@@ -9,6 +9,7 @@ export function useOrderSetting() {
   const [price, setPrice] = useState("");
   const [totalAmount, setTotalAmount] = useState("0");
   const [isLoading, setIsLoading] = useState(true);
+  const [inputType, setInputType] = useState("quantity");
   
   // 선택된 코인 정보 가져오기
   const { coin: selectedMarket } = useCoin();
@@ -54,22 +55,36 @@ export function useOrderSetting() {
   useEffect(() => {
     if (!selectedMarket) return;
     
-    const loadInitialData = async () => {
+    console.log(`코인 감지 [OrderSetting]: ${selectedMarket}`);
+    
+    // 수량과 총액을 초기화
+    setQuantity("");
+    setTotalAmount("0");
+    
+    // 가격 데이터 로드
+    const loadPriceData = async () => {
       setIsLoading(true);
       
       try {
+        console.log(`${selectedMarket} 가격 데이터 로드 중...`);
         const priceData = await fetchCoinPrice(selectedMarket);
+        
         if (priceData && priceData.closing_price) {
+          console.log(`${selectedMarket} 가격 로드 성공:`, priceData.closing_price);
           setPrice(priceData.closing_price);
+        } else {
+          console.error(`${selectedMarket} 가격 데이터 없음`);
+          setPrice("");
         }
       } catch (error) {
-        console.error("현재가 로드 오류:", error);
+        console.error(`${selectedMarket} 가격 로드 오류:`, error);
+        setPrice("");
       } finally {
         setIsLoading(false);
       }
     };
     
-    loadInitialData();
+    loadPriceData();
   }, [selectedMarket]);
   
   // 시장가 모드일 때 가격 업데이트
@@ -88,25 +103,127 @@ export function useOrderSetting() {
     }
   }, [selectedPriceType, currentPriceInfo]);
   
-  // 총액 계산
-  useEffect(() => {
-    const priceValue = parseFloat(price.replace(/,/g, '')) || 0;
-    const qtyValue = parseFloat(quantity) || 0;
-    setTotalAmount((priceValue * qtyValue).toLocaleString('ko-KR'));
-  }, [price, quantity]);
-  
   // 수량 증감 함수
   const increaseQuantity = () => {
     const currentQty = parseFloat(quantity) || 0;
     const increment = selectedMarket === "BTC" ? 0.0001 : 0.01;
-    setQuantity((currentQty + increment).toFixed(selectedMarket === "BTC" ? 4 : 2));
+    const newQuantity = (currentQty + increment).toFixed(selectedMarket === "BTC" ? 4 : 2);
+    
+    // 수량 업데이트
+    setQuantity(newQuantity);
+    setInputType("quantity");
+
+    // 가격이 있으면 총액도 업데이트 - 새 수량으로 계산해야 함
+    if(price) {
+      const priceValue = parseFloat(price.replace(/,/g, '')) || 0;
+      const newQtyValue = parseFloat(newQuantity) || 0; // 새 수량으로 계산
+      const calculatedTotal = (priceValue * newQtyValue);
+      setTotalAmount(calculatedTotal.toLocaleString('ko-KR'));
+    }
   };
-  
+
   const decreaseQuantity = () => {
     const currentQty = parseFloat(quantity) || 0;
     const increment = selectedMarket === "BTC" ? 0.0001 : 0.01;
     if (currentQty > increment) {
-      setQuantity((currentQty - increment).toFixed(selectedMarket === "BTC" ? 4 : 2));
+      const newQuantity = (currentQty - increment).toFixed(selectedMarket === "BTC" ? 4 : 2);
+      
+      // 수량 업데이트
+      setQuantity(newQuantity);
+      setInputType("quantity");
+
+      if(price) {
+        const priceValue = parseFloat(price.replace(/,/g, '')) || 0;
+        const newQtyValue = parseFloat(newQuantity) || 0;
+        const calculatedTotal = (priceValue * newQtyValue);
+        setTotalAmount(calculatedTotal.toLocaleString('ko-KR'));
+      }
+    }
+  };
+  
+  // 수량 입력 핸들러 수정
+  const handleQuantityChange = (value: string) => {
+    const regex = selectedMarket === "BTC" ? /^[0-9]*\.?[0-9]{0,4}$/ : /^[0-9]*\.?[0-9]{0,2}$/;
+    
+    // 빈 값이거나 정규식에 맞는 경우만 수량 업데이트
+    if (value === '' || regex.test(value)) {
+      setQuantity(value);
+      
+      // 가격이 있는 경우에만 총액 계산
+      if (price) {
+        const priceValue = parseFloat(price.replace(/,/g, '')) || 0;
+        const qtyValue = parseFloat(value) || 0;
+        setTotalAmount((priceValue * qtyValue).toLocaleString('ko-KR'));
+      }
+      
+      setInputType("quantity");
+    }
+  };
+
+  // 총액 입력 핸들러
+  const handleTotalAmountChange = (value: string) => {
+    if(!value || value === "0") {
+      setQuantity("");
+      setTotalAmount("0");
+      return;
+    }
+
+    const parsedAmount = parseInt(value);
+    setTotalAmount(parsedAmount.toLocaleString('ko-KR'));
+
+    if(price && parseFloat(price.replace(/,/g, '')) > 0) {
+      const priceValue = parseFloat(price.replace(/,/g, ''));
+      const calculatedQty = parsedAmount / priceValue;
+
+      console.log({
+        입력총액: parsedAmount,
+        코인가격: priceValue,
+        계산수량_raw: calculatedQty,
+        코인종류: selectedMarket
+      });
+
+      // 소수점 8자리 까지 표시
+      setQuantity(calculatedQty.toFixed(8));
+    }
+
+    setInputType("totalAmount");
+  };
+
+  // 코인 변경 시 수량 초기화 추가
+  useEffect(() => {
+    setQuantity("");
+    setTotalAmount("0");
+  }, [selectedMarket]);
+  
+
+  // 가격 입력 핸들러 개선
+  const handlePriceChange = (value: string) => {
+    // 콤마 제거 후 숫자만 유지
+    const numericValue = value.replace(/[^0-9]/g, '');
+    
+    if (!numericValue) {
+      setPrice("");
+      return;
+    }
+    
+    // 숫자 값을 정수로 변환하고 다시 콤마 포맷팅
+    const parsedPrice = parseInt(numericValue);
+    setPrice(parsedPrice.toLocaleString('ko-KR'));
+    
+    // 현재 입력 타입에 따라 다른 필드 업데이트
+    if (inputType === "quantity" && quantity) {
+      // 수량 기준: 가격이 변경되면 총액 재계산
+      const qtyValue = parseFloat(quantity) || 0;
+      setTotalAmount((parsedPrice * qtyValue).toLocaleString('ko-KR'));
+    } else if (inputType === "totalAmount" && totalAmount) {
+      // 총액 기준: 가격이 변경되면 수량 재계산
+      const totalValue = parseFloat(totalAmount.replace(/,/g, '')) || 0;
+      
+      if (parsedPrice > 0) {
+        const calculatedQty = totalValue / parsedPrice;
+        const decimalPlaces = selectedMarket === "BTC" ? 8 : 4;
+        setQuantity(calculatedQty.toFixed(decimalPlaces));
+      }
     }
   };
   
@@ -115,14 +232,16 @@ export function useOrderSetting() {
     selectedPriceType,
     setSelectedPriceType,
     quantity,
-    setQuantity,
+    setQuantity: handleQuantityChange,
     price,
-    setPrice,
+    setPrice: handlePriceChange,
     totalAmount,
+    setTotalAmount: handleTotalAmountChange,
     isLoading,
     increaseQuantity,
     decreaseQuantity,
     getCurrentPriceInfo: () => currentPriceInfo,
-    getMarketPriceInfo: () => marketPriceInfo
+    getMarketPriceInfo: () => marketPriceInfo,
+    inputType
   };
 }
