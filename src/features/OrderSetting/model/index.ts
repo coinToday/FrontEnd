@@ -9,7 +9,9 @@ export function useOrderSetting() {
   const [price, setPrice] = useState("");
   const [totalAmount, setTotalAmount] = useState("0");
   const [isLoading, setIsLoading] = useState(true);
+
   const [inputType, setInputType] = useState("quantity");
+
   
   // 선택된 코인 정보 가져오기
   const { coin: selectedMarket } = useCoin();
@@ -55,6 +57,18 @@ export function useOrderSetting() {
   useEffect(() => {
     if (!selectedMarket) return;
     
+// <<<<<<< feature/coin
+//     const loadInitialData = async () => {
+//       setIsLoading(true);
+      
+//       try {
+//         const priceData = await fetchCoinPrice(selectedMarket);
+//         if (priceData && priceData.closing_price) {
+//           setPrice(priceData.closing_price);
+//         }
+//       } catch (error) {
+//         console.error("현재가 로드 오류:", error);
+
     console.log(`코인 감지 [OrderSetting]: ${selectedMarket}`);
     
     // 수량과 총액을 초기화
@@ -84,7 +98,9 @@ export function useOrderSetting() {
       }
     };
     
+
     loadPriceData();
+
   }, [selectedMarket]);
   
   // 시장가 모드일 때 가격 업데이트
@@ -103,10 +119,20 @@ export function useOrderSetting() {
     }
   }, [selectedPriceType, currentPriceInfo]);
   
+
+  // 총액 계산
+//   useEffect(() => {
+//     const priceValue = parseFloat(price.replace(/,/g, '')) || 0;
+//     const qtyValue = parseFloat(quantity) || 0;
+//     setTotalAmount((priceValue * qtyValue).toLocaleString('ko-KR'));
+//   }, [price, quantity]);
+  
+
   // 수량 증감 함수
   const increaseQuantity = () => {
     const currentQty = parseFloat(quantity) || 0;
     const increment = selectedMarket === "BTC" ? 0.0001 : 0.01;
+
     const newQuantity = (currentQty + increment).toFixed(selectedMarket === "BTC" ? 4 : 2);
     
     // 수량 업데이트
@@ -122,10 +148,12 @@ export function useOrderSetting() {
     }
   };
 
+
   const decreaseQuantity = () => {
     const currentQty = parseFloat(quantity) || 0;
     const increment = selectedMarket === "BTC" ? 0.0001 : 0.01;
     if (currentQty > increment) {
+
       const newQuantity = (currentQty - increment).toFixed(selectedMarket === "BTC" ? 4 : 2);
       
       // 수량 업데이트
@@ -232,16 +260,20 @@ export function useOrderSetting() {
     selectedPriceType,
     setSelectedPriceType,
     quantity,
+
     setQuantity: handleQuantityChange,
     price,
     setPrice: handlePriceChange,
     totalAmount,
     setTotalAmount: handleTotalAmountChange,
+
     isLoading,
     increaseQuantity,
     decreaseQuantity,
     getCurrentPriceInfo: () => currentPriceInfo,
+
     getMarketPriceInfo: () => marketPriceInfo,
     inputType
+
   };
 }

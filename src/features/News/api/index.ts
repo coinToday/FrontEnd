@@ -16,7 +16,7 @@ export const fetchNews = async (coinName: string) => {
 // 코인 목록 가져오기
 export const fetchCoinList = async () => {
   try {
-    const response = await axios.get("http://116.126.197.110:30010/coin-name-list?state=like");
+    const response = await axios.get("http://116.126.197.110:30010/coin-name-list");
     return response.data;
   } catch (error) {
     console.error("Error fetching coin list", error);
