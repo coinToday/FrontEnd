@@ -1,5 +1,6 @@
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import { Layout1 } from "../layouts/index";
+
 import {
   ExchangePage,
   LoginPage,
@@ -23,8 +24,10 @@ const router = createBrowserRouter([
       { path: "login", element: <LoginPage /> },
       { path: "exchange", element: <ExchangePage /> },
       { path: "exchange/:coinCode", element: <ExchangePage /> },
+
       { path: "mypage", element: <Mypage /> },
       { path: "join", element: <JoinPage /> },
+
     ],
   },
 ]);
