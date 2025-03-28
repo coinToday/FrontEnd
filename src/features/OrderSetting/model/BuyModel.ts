@@ -1,7 +1,14 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useCoin } from "../../../shared";
 import { useWebsocket } from "../../../shared";
-import { fetchCoinPrice } from "../api";
+import { fetchCoinPrice, submitMarketBuyOrder, submitLimitOrder } from "../api/BuyApi";
+
+// 주문 상태 인터페이스
+interface OrderStatus {
+  isSubmitting: boolean;
+  isSuccess: boolean | null;
+  error: string | null;
+}
 
 export function useOrderSetting() {
   const [selectedPriceType, setSelectedPriceType] = useState("지정가");
@@ -9,15 +16,20 @@ export function useOrderSetting() {
   const [price, setPrice] = useState("");
   const [totalAmount, setTotalAmount] = useState("0");
   const [isLoading, setIsLoading] = useState(true);
-
   const [inputType, setInputType] = useState("quantity");
-
+  
+  // 주문 상태 관리 추가
+  const [orderStatus, setOrderStatus] = useState<OrderStatus>({
+    isSubmitting: false,
+    isSuccess: null,
+    error: null
+  });
   
   // 선택된 코인 정보 가져오기
   const { coin: selectedMarket } = useCoin();
   const { orderbookData, tradeData, isConnected } = useWebsocket();
   
-  // 현재가 정보 - API와 실시간 거래 데이터에서 계산
+  // 현재가 정보
   const currentPriceInfo = useMemo(() => {
     if (!selectedMarket || !tradeData || tradeData.length === 0) return null;
     
@@ -31,7 +43,7 @@ export function useOrderSetting() {
     return null;
   }, [tradeData, selectedMarket]);
   
-  // 시장가 정보 - 오더북에서 계산
+  // 시장가 정보
   const marketPriceInfo = useMemo(() => {
     if (!selectedMarket || !orderbookData) return null;
     
@@ -57,18 +69,6 @@ export function useOrderSetting() {
   useEffect(() => {
     if (!selectedMarket) return;
     
-// <<<<<<< feature/coin
-//     const loadInitialData = async () => {
-//       setIsLoading(true);
-      
-//       try {
-//         const priceData = await fetchCoinPrice(selectedMarket);
-//         if (priceData && priceData.closing_price) {
-//           setPrice(priceData.closing_price);
-//         }
-//       } catch (error) {
-//         console.error("현재가 로드 오류:", error);
-
     console.log(`코인 감지 [OrderSetting]: ${selectedMarket}`);
     
     // 수량과 총액을 초기화
@@ -98,9 +98,7 @@ export function useOrderSetting() {
       }
     };
     
-
     loadPriceData();
-
   }, [selectedMarket]);
   
   // 시장가 모드일 때 가격 업데이트
@@ -111,29 +109,22 @@ export function useOrderSetting() {
     }
   }, [selectedPriceType, marketPriceInfo]);
   
-  // 지정가 모드가 아닐 때 체결 가격 기반 업데이트
+  // 주문 변경 시 수량과 총액 초기화
   useEffect(() => {
-    if (selectedPriceType !== "지정가" && currentPriceInfo) {
-      const unformattedPrice = currentPriceInfo.price.replace(/,/g, '');
-      setPrice(unformattedPrice);
+    setQuantity("");
+    setTotalAmount("0");
+
+    if (selectedPriceType === "시장가") {
+      setQuantity("");
+      setTotalAmount("0");
     }
-  }, [selectedPriceType, currentPriceInfo]);
+  }, [selectedPriceType]);
   
-
-  // 총액 계산
-//   useEffect(() => {
-//     const priceValue = parseFloat(price.replace(/,/g, '')) || 0;
-//     const qtyValue = parseFloat(quantity) || 0;
-//     setTotalAmount((priceValue * qtyValue).toLocaleString('ko-KR'));
-//   }, [price, quantity]);
-  
-
   // 수량 증감 함수
   const increaseQuantity = () => {
     const currentQty = parseFloat(quantity) || 0;
-    const increment = selectedMarket === "BTC" ? 0.0001 : 0.01;
-
-    const newQuantity = (currentQty + increment).toFixed(selectedMarket === "BTC" ? 4 : 2);
+    const increment = selectedMarket === "BTC" ? 0.00000001 : 0.0001;
+    const newQuantity = (currentQty + increment).toFixed(selectedMarket === "BTC" ? 8 : 4);
     
     // 수량 업데이트
     setQuantity(newQuantity);
@@ -143,18 +134,16 @@ export function useOrderSetting() {
     if(price) {
       const priceValue = parseFloat(price.replace(/,/g, '')) || 0;
       const newQtyValue = parseFloat(newQuantity) || 0; // 새 수량으로 계산
-      const calculatedTotal = (priceValue * newQtyValue);
+      const calculatedTotal = Math.ceil(priceValue * newQtyValue);
       setTotalAmount(calculatedTotal.toLocaleString('ko-KR'));
     }
   };
 
-
   const decreaseQuantity = () => {
     const currentQty = parseFloat(quantity) || 0;
-    const increment = selectedMarket === "BTC" ? 0.0001 : 0.01;
+    const increment = selectedMarket === "BTC" ? 0.00000001 : 0.0001;
     if (currentQty > increment) {
-
-      const newQuantity = (currentQty - increment).toFixed(selectedMarket === "BTC" ? 4 : 2);
+      const newQuantity = (currentQty - increment).toFixed(selectedMarket === "BTC" ? 8 : 4);
       
       // 수량 업데이트
       setQuantity(newQuantity);
@@ -163,7 +152,7 @@ export function useOrderSetting() {
       if(price) {
         const priceValue = parseFloat(price.replace(/,/g, '')) || 0;
         const newQtyValue = parseFloat(newQuantity) || 0;
-        const calculatedTotal = (priceValue * newQtyValue);
+        const calculatedTotal = Math.ceil(priceValue * newQtyValue);
         setTotalAmount(calculatedTotal.toLocaleString('ko-KR'));
       }
     }
@@ -171,7 +160,7 @@ export function useOrderSetting() {
   
   // 수량 입력 핸들러 수정
   const handleQuantityChange = (value: string) => {
-    const regex = selectedMarket === "BTC" ? /^[0-9]*\.?[0-9]{0,4}$/ : /^[0-9]*\.?[0-9]{0,2}$/;
+    const regex = selectedMarket === "BTC" ? /^[0-9]*\.?[0-9]{0,8}$/ : /^[0-9]*\.?[0-9]{0,4}$/;
     
     // 빈 값이거나 정규식에 맞는 경우만 수량 업데이트
     if (value === '' || regex.test(value)) {
@@ -181,7 +170,9 @@ export function useOrderSetting() {
       if (price) {
         const priceValue = parseFloat(price.replace(/,/g, '')) || 0;
         const qtyValue = parseFloat(value) || 0;
-        setTotalAmount((priceValue * qtyValue).toLocaleString('ko-KR'));
+        const calculatedTotal = Math.ceil(priceValue * qtyValue);
+
+        setTotalAmount(calculatedTotal.toLocaleString('ko-KR'));
       }
       
       setInputType("quantity");
@@ -203,15 +194,18 @@ export function useOrderSetting() {
       const priceValue = parseFloat(price.replace(/,/g, ''));
       const calculatedQty = parsedAmount / priceValue;
 
+      const flooredQty = Math.floor(calculatedQty * 100000000) / 100000000;
+
       console.log({
         입력총액: parsedAmount,
         코인가격: priceValue,
         계산수량_raw: calculatedQty,
+        계산수량_floored: flooredQty,
         코인종류: selectedMarket
       });
 
-      // 소수점 8자리 까지 표시
-      setQuantity(calculatedQty.toFixed(8));
+      // 수량 내림 처리
+      setQuantity(flooredQty.toFixed(8));
     }
 
     setInputType("totalAmount");
@@ -223,7 +217,6 @@ export function useOrderSetting() {
     setTotalAmount("0");
   }, [selectedMarket]);
   
-
   // 가격 입력 핸들러 개선
   const handlePriceChange = (value: string) => {
     // 콤마 제거 후 숫자만 유지
@@ -255,25 +248,145 @@ export function useOrderSetting() {
     }
   };
   
+  // 시장가 매수 함수 추가
+  const submitMarketBuy = useCallback(async (userId: string) => {
+    if (!selectedMarket || !totalAmount || totalAmount === "0") {
+      setOrderStatus({
+        isSubmitting: false,
+        isSuccess: false,
+        error: "코인과 매수 금액을 확인해주세요"
+      });
+      return;
+    }
+    
+    // 콤마 제거
+    const cashAmount = totalAmount.replace(/,/g, '');
+    
+    setOrderStatus({
+      isSubmitting: true,
+      isSuccess: null,
+      error: null
+    });
+    
+    try {
+      // 시장가 매수 API 호출
+      const success = await submitMarketBuyOrder(userId, selectedMarket, cashAmount);
+      
+      if (success) {
+        setOrderStatus({
+          isSubmitting: false,
+          isSuccess: true,
+          error: null
+        });
+        
+        // 주문 성공 후 폼 초기화
+        setQuantity("");
+        setTotalAmount("0");
+      } else {
+        throw new Error("매수 주문 실패");
+      }
+    } catch (error) {
+      console.error("매수 실행 오류:", error);
+      setOrderStatus({
+        isSubmitting: false,
+        isSuccess: false,
+        error: error instanceof Error ? error.message : "매수 중 오류가 발생했습니다"
+      });
+    }
+  }, [selectedMarket, totalAmount]);
+  
+  // 지정가 매수 함수
+  const submitLimitBuy = useCallback(async (userId: string) => {
+    if (!selectedMarket || !price || !quantity) {
+      setOrderStatus({
+        isSubmitting: false,
+        isSuccess: false,
+        error: "코인, 가격, 수량을 확인해주세요"
+      });
+      return;
+    }
+    
+    // 콤마 제거
+    const coinPrice = price.replace(/,/g, '');
+    const cash = totalAmount.replace(/,/g, '');
+    
+    // 주문 상태 업데이트
+    setOrderStatus({
+      isSubmitting: true,
+      isSuccess: null,
+      error: null
+    });
+    
+    try {
+      console.log("지정가 매수 요청:", {
+        userId,
+        coinName: selectedMarket,
+        coinPrice,
+        cash,
+        state: "bid"
+      });
+      
+      // 지정가 매수 API 호출 (bid = 매수)
+      const success = await submitLimitOrder(
+        userId, 
+        selectedMarket, 
+        coinPrice,
+        cash,
+        "bid"
+      );
+      
+      if (success) {
+        setOrderStatus({
+          isSubmitting: false,
+          isSuccess: true,
+          error: null
+        });
+        
+        // 주문 성공 후 폼 초기화
+        setQuantity("");
+        setTotalAmount("0");
+      } else {
+        throw new Error("지정가 매수 주문 실패");
+      }
+    } catch (error) {
+      console.error("지정가 매수 실행 오류:", error);
+      setOrderStatus({
+        isSubmitting: false,
+        isSuccess: false,
+        error: error instanceof Error ? error.message : "매수 중 오류가 발생했습니다"
+      });
+    }
+  }, [selectedMarket, price, quantity, totalAmount]);
+  
+  // 주문 상태 초기화
+  const resetOrderStatus = useCallback(() => {
+    setOrderStatus({
+      isSubmitting: false,
+      isSuccess: null,
+      error: null
+    });
+  }, []);
+  
   return {
     selectedMarket,
     selectedPriceType,
     setSelectedPriceType,
     quantity,
-
     setQuantity: handleQuantityChange,
     price,
     setPrice: handlePriceChange,
     totalAmount,
     setTotalAmount: handleTotalAmountChange,
-
     isLoading,
     increaseQuantity,
     decreaseQuantity,
     getCurrentPriceInfo: () => currentPriceInfo,
-
     getMarketPriceInfo: () => marketPriceInfo,
-    inputType
-
+    inputType,
+    // 매수 기능 추가
+    submitMarketBuy,
+    submitLimitBuy,
+    orderStatus,
+    resetOrderStatus
   };
 }
