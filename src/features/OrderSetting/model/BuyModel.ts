@@ -261,6 +261,16 @@ export function useOrderSetting() {
     
     // 콤마 제거
     const cashAmount = totalAmount.replace(/,/g, '');
+    const cashValue = parseInt(cashAmount);
+
+    if(cashValue < 7200) {
+      setOrderStatus({
+        isSubmitting: false,
+        isSuccess: false,
+        error: "최소 주문 금액은 7200원 입니다."
+      });
+      return;
+    }
     
     setOrderStatus({
       isSubmitting: true,
@@ -269,7 +279,8 @@ export function useOrderSetting() {
     });
     
     try {
-      // 시장가 매수 API 호출
+      // 시장가 매수
+
       const success = await submitMarketBuyOrder(userId, selectedMarket, cashAmount);
       
       if (success) {
@@ -309,6 +320,16 @@ export function useOrderSetting() {
     // 콤마 제거
     const coinPrice = price.replace(/,/g, '');
     const cash = totalAmount.replace(/,/g, '');
+    const cashValue = parseInt(cash);
+
+    if(cashValue < 7200) {
+      setOrderStatus({
+        isSubmitting: false,
+        isSuccess: false,
+        error: "최소 주문 금액은 7200원 입니다."
+      });
+      return;
+    }
     
     // 주문 상태 업데이트
     setOrderStatus({
