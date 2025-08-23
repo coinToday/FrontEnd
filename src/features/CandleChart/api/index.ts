@@ -5,7 +5,7 @@ import axios from "axios";
 export const fetchInitialData = async () => {
   try {
     const response = await axios.get(
-      "http://116.126.197.110:30010/coin_price",
+      `${import.meta.env.REACT_APP_API_BASE_URL}/coin_price`,
       {
         params: {
           coinName: "XRP",

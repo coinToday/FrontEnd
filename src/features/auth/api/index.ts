@@ -1,14 +1,19 @@
 import axios from "axios";
 
 export const LoginApi = async (userId: string, password: string) => {
-  const response = await axios.post("http://116.126.197.110:30010/login", {
-    userId,
-    password,
-  });
+  const response = await axios.post(
+    `${import.meta.env.REACT_APP_API_BASE_URL}/login`,
+    {
+      userId,
+      password,
+    }
+  );
   return response;
 };
 
 export const LogoutApi = async () => {
-  const response = await axios.get("http://116.126.197.110:30010/logout");
+  const response = await axios.get(
+    `${import.meta.env.REACT_APP_API_BASE_URL}/logout`
+  );
   return response;
 };

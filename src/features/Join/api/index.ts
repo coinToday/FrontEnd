@@ -9,7 +9,7 @@ export const signUpApi = async (data: {
   secKey: string;
 }) => {
   const response = await axios.post(
-    "http://116.126.197.110:30010/sign-up",
+    `${import.meta.env.REACT_APP_API_BASE_URL}/sign-up`,
     data
   );
   return response.data;
@@ -18,7 +18,7 @@ export const signUpApi = async (data: {
 export const requestEmailCodeApi = async (email: string) => {
   try {
     const response = await axios.post(
-      `http://116.126.197.110:30010/email-get-code?email=${email}`
+      `${import.meta.env.REACT_APP_API_BASE_URL}/email-get-code?email=${email}`
     );
     console.log(email);
     return response;
@@ -32,7 +32,7 @@ export const requestEmailCodeApi = async (email: string) => {
 export const verifyEmailCodeApi = async (email: string, code: string) => {
   console.log(email, code);
   const response = await axios.get(
-    "http://116.126.197.110:30010/email-enter-code",
+    `${import.meta.env.REACT_APP_API_BASE_URL}/email-enter-code`,
     {
       params: { email, code },
     }

@@ -37,7 +37,7 @@ export const submitLimitOrder = async (
       coinName,
       coinPrice,
       cash,
-      state
+      state,
     });
     
     const response = await apiClient.post(
@@ -47,10 +47,10 @@ export const submitLimitOrder = async (
         coinName,
         coinPrice,
         cash,
-        state
+        state,
       }
     );
-    
+
     console.log("지정가 주문 응답:", response.data, response.status);
     return response.status === 200;
   } catch (error) {
@@ -73,10 +73,10 @@ export const submitMarketBuyOrder = async (
       {
         userId,
         coinName,
-        cash
+        cash,
       }
     );
-    
+
     console.log("시장가 매수 주문 성공:", response.data);
     return response.status === 200;
   } catch (error) {

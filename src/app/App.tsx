@@ -8,6 +8,8 @@ import {
   TestPage,
   NewsPage,
   JoinPage,
+  Community,
+  SignUp,
 } from "./index";
 
 import "./index.css";
@@ -24,6 +26,8 @@ const router = createBrowserRouter([
       { path: "exchange", element: <ExchangePage /> },
       { path: "exchange/:coinCode", element: <ExchangePage /> },
       { path: "join", element: <JoinPage /> },
+      { path: "community", element: <Community /> },
+      { path: "signUp", element: <SignUp /> },
     ],
   },
 ]);
