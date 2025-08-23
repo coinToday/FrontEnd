@@ -3,7 +3,7 @@ import { userId } from "../../../shared/userId";
 
 export const fetchCoin = async (sortList: string) => {
   const response = await axios.get(
-    "http://116.126.197.110:30010/coin-name-list",
+    `${import.meta.env.REACT_APP_API_BASE_URL}/coin-name-list`,
     {
       params: { userId, state: sortList },
       headers: { accept: "application/json" },

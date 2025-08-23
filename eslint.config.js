@@ -46,7 +46,7 @@ export default [
         1,
         { extensions: [".js", ".jsx", ".ts", ".tsx"] },
       ],
-      "no-console": process.env.NODE_ENV === "production" ? "error" : "off",
+      "no-console": import.meta.env.NODE_ENV === "production" ? "error" : "off",
       "prettier/prettier": "error", // Prettier 규칙을 ESLint 규칙으로 처리
     },
   },

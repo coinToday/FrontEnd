@@ -28,20 +28,20 @@ export const submitLimitOrder = async (
       coinName,
       coinPrice,
       cash,
-      state
+      state,
     });
-    
+
     const response = await axios.post(
-      "http://116.126.197.110:30010/limit-order",
+      `${import.meta.env.REACT_APP_API_BASE_URL}/limit-order`,
       {
         userId,
         coinName,
         coinPrice,
         cash,
-        state
+        state,
       }
     );
-    
+
     console.log("지정가 주문 응답:", response.data, response.status);
     return response.status === 200;
   } catch (error) {
@@ -58,16 +58,16 @@ export const submitMarketBuyOrder = async (
 ): Promise<boolean> => {
   try {
     console.log(`시장가 매수 요청: ${coinName}, ${cash}원`);
-    
+
     const response = await axios.post(
-      "http://116.126.197.110:30010/buy-coin",
+      `${import.meta.env.REACT_APP_API_BASE_URL}/buy-coin`,
       {
         userId,
         coinName,
-        cash
+        cash,
       }
     );
-    
+
     console.log("시장가 매수 주문 성공:", response.data);
     return response.status === 200;
   } catch (error) {

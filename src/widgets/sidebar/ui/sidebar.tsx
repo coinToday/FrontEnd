@@ -57,6 +57,13 @@ export default function SideBar() {
       >
         코인 리스트
       </div>
+      <Link
+        to="/community"
+        className="block p-2 text-wheat no-underline"
+        onClick={() => closeSideBar()}
+      >
+        커뮤니티
+      </Link>
       {sessionStorage.getItem("userId") && (
         <div onClick={() => toggleSidebar("logout", <LogoutModal />)}>
           로그아웃
